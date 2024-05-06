@@ -14,11 +14,11 @@ This Node.js application allows you to scrape data from LinkedIn and store it in
 
 Open your terminal and run the following command to clone the repository:
 
-```bash
+```
 git clone https://github.com/superiorankit/linkedinScrapper.git
 cd linkedinScrapper
 npm install
-```bash
+```
 
 ### 2. Set Environment Variables
 
