@@ -24,7 +24,7 @@ npm install
 
 Create a .env file in the root directory of your project and add your LinkedIn username and password:
 
-LINKEDIN_USERNAME=your_username
+LINKEDIN_USERNAME=your_username<br/>
 LINKEDIN_PASSWORD=your_password
 
 Replace your_username and your_password with your LinkedIn credentials.
