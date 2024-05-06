@@ -193,7 +193,10 @@ const start = async () => {
         companyCount++;
 
         //Condition for restricting number of data to extract
-        if (companyCount === dataRequired) return;
+        if (companyCount === dataRequired){ 
+          await Aboutpage.close();
+          return;
+        };
         await Aboutpage.close();
       }
       catch (err) {
@@ -238,7 +241,7 @@ const start = async () => {
     const XLSX = require('xlsx');
 
     // Convert the data to a worksheet
-    const ws = XLSX.utils.json_to_sheet(obj);
+    const ws = XLSX.utils.json_to_sheet(data);
 
     // Create a workbook and add the worksheet
     const wb = XLSX.utils.book_new();
