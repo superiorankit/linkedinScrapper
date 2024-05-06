@@ -18,7 +18,7 @@ Open your terminal and run the following command to clone the repository:
 git clone https://github.com/superiorankit/linkedinScrapper.git
 cd linkedinScrapper
 npm install
-```bash
+```
 
 ### 2. Set Environment Variables
 
@@ -35,7 +35,7 @@ Once you have set up the environment variables, you can run the application usin
 
 ```bash
 npm start
-
+```
 
 ## Notes
 
