@@ -19,6 +19,8 @@ const start = async () => {
   let industry = "education";
   let companySize = "#companySize-C";
 
+  let dataRequired = 20;
+
   //Launching browser
   const browser = await puppeteer.launch({
     headless: false
@@ -191,7 +193,7 @@ const start = async () => {
         companyCount++;
 
         //Condition for restricting number of data to extract
-        if (companyCount === 25) return;
+        if (companyCount === dataRequired) return;
         await Aboutpage.close();
       }
       catch (err) {
@@ -220,7 +222,7 @@ const start = async () => {
 
       //Condition to check if current page is last page or to restrict number of data required
       //(if true then break loop)
-      if (companyCount === 25 || disabled) break;
+      if (companyCount === dataRequired || disabled) break;
       await next.click();
 
     }
@@ -252,10 +254,6 @@ const start = async () => {
   }
 
   convertToXLSX();
-
-
-
-
 }
 
 
