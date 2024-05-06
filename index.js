@@ -7,16 +7,14 @@ const start= async ()=>{
 // const page = await context.newPage();
 
     const browser = await puppeteer.launch({
-        headless:false,
-        defaultViewport:null
+        headless:false
     });
     const page = await browser.newPage();
 
     await page.goto('https://www.linkedin.com/home', { waitUntil: 'networkidle0' });
 
+    await page.setViewport({width: 1280, height: 1024});
 
-
-    // const data = await page.evaluate(()=>document.getElementById('username').id);
     await page.type('#session_key','hagofor1@gmail.com');
     await page.type('#session_password','@7004741510Ank')
 
@@ -50,7 +48,7 @@ const start= async ()=>{
         let input = await page.$("input[placeholder='Add a location']")
 
          await input.click();
-         await input.type('saudi',{delay: 500})
+         await input.type('indonesia',{delay: 500})
 
         let id = await page.evaluate((element)=>element.getAttribute('aria-controls'),input)
         
@@ -59,8 +57,9 @@ const start= async ()=>{
 
          await page.waitForSelector('span span')
 
-        let li = await locationDiv.$('span span');         
-          li.click();
+        let li = await locationDiv.$$('span span');
+                 
+          li[0].click();
 
           let button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
           button[1].click();
@@ -71,7 +70,6 @@ const start= async ()=>{
 
           await page.waitForSelector('#searchFilter_industryCompanyVertical')
 
-          await page.waitForSelector('#searchFilter_industryCompanyVertical')
           const industry = await page.$('#searchFilter_industryCompanyVertical')
           industry.click();
           await page.waitForSelector("input[placeholder='Add an industry']")
@@ -119,22 +117,13 @@ await sizeLi.click();
 button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
 button[5].click();
 
-// await page.waitForLoadState()
-await page.waitForNavigation({ waitUntil: 'networkidle0' });
-const next = await page.$('button[aria-label="Next"]');
-console.log(next)
-
-
-
-
-
 //------------------------------------------------------------------------------------------------------------------
 
 
-
-
+let companyCount = 0;
+const obj = [];
 const search = async () => {
-  const obj = [];
+
 
 
           await page.waitForSelector(".entity-result__title-text .app-aware-link")
@@ -172,6 +161,8 @@ const search = async () => {
                }
                   
                obj.push(singleObj);
+               companyCount++;
+               if(companyCount === 25) return;
               //  console.log(obj);
                await Aboutpage.close();
               }
@@ -188,28 +179,49 @@ const search = async () => {
 };
 
 
-
-
-
-
 while(true)
 {
   try{
-  // await search();
-  const next = await page.$('button[aria-label="Next"]');
-   console.log(next)
+    await page.waitForNavigation();
+  await search();
+  const next = await page.waitForSelector('button[aria-label="Next"]');
+  const disabled = await page.evaluate((tag)=>tag.disabled,next)
+  if(companyCount === 25 || disabled) break;
   await next.click();
-  await page.waitForNavigation();
+
   }
   catch(err){
     console.log(err);
+    // break;
   }
 }
+
+// console.log(obj)
+
+
+const XLSX = require('xlsx');
+
+// Convert the data to a worksheet
+const ws = XLSX.utils.json_to_sheet(obj);
+
+// Create a workbook and add the worksheet
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+// Write the workbook to a file
+XLSX.writeFile(wb, 'data.xlsx', { bookType: 'xlsx' });
+
+
+console.log("done")
+
+
+
+
 
 
 
  
-search();
+// search();
 
 
 
