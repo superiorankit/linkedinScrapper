@@ -22,7 +22,7 @@ npm install
 
 ### 2. Set Environment Variables
 
-Create a .env file in the root directory of your project and add your LinkedIn username and password:
+Create a config.env file in the root directory of your project and add your LinkedIn username and password:
 
 LINKEDIN_USERNAME=your_username<br/>
 LINKEDIN_PASSWORD=your_password
