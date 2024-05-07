@@ -7,6 +7,16 @@ try {
 
   //Method to start Scrapping
   const start = async () => {
+    console.log("Started...........")
+    // Launching browser
+    const browser = await puppeteer.launch({
+      headless: false,
+      slowMo: 40
+    });
+    // const browser = await puppeteer.launch();
+
+    //Opening a new page
+    const page = await browser.newPage();
     try {
       //Linkedin username or email
       let user = process.env.USER;
@@ -20,15 +30,7 @@ try {
       let industry = "education";
       let companySize = "#companySize-C";
 
-      let dataRequired = 20;
-
-      //Launching browser
-      const browser = await puppeteer.launch({
-        headless: false
-      });
-
-      //Opening a new page
-      const page = await browser.newPage();
+      let dataRequired = 5;
 
       //Visiting to the link
       await page.goto('https://www.linkedin.com/home', { waitUntil: 'networkidle0' });
@@ -70,8 +72,8 @@ try {
 
         //Selector for filter button
         await page.waitForSelector(option)
-        const filteButton = await page.$(option)
-        filteButton.click();
+        const filterButton = await page.$(option)
+        filterButton.click();
 
         //Selector for filter search input
         await page.waitForSelector(`input[placeholder='${placeholder}']`)
@@ -90,7 +92,6 @@ try {
         await page.waitForSelector('span span')
         //returning list
         return await suggestionDiv.$$('span span');
-
       }
 
       //Country Choice filter
@@ -119,7 +120,6 @@ try {
       button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
       button[3].click();
       await page.waitForNavigation();
-
 
       //Company Size Choice filter
       await page.waitForSelector('#searchFilter_companySize')
@@ -159,7 +159,6 @@ try {
           const Aboutpage = await browser.newPage();
 
           try {
-
             //Stores extacted data of a company
             let singleData = {
             }
@@ -173,7 +172,7 @@ try {
             const name = await Aboutpage.evaluate(() => document.querySelector(".ph5 .mt2 h1").innerHTML.trim());
             singleData.name = name;
 
-            //Selector for getting list of headings of about page
+            //Selector for getting list of headings of about section
             await Aboutpage.waitForSelector("dl dt")
             const keyList = await Aboutpage.$$('dl dt')
 
@@ -205,7 +204,6 @@ try {
             await Aboutpage.close();
           }
         }
-
 
       };
 
@@ -255,8 +253,14 @@ try {
       }
 
       convertToXLSX();
+
+      page.close();
+      browser.close();
+
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      page.close();
+      browser.close();
       start();
     }
   }
