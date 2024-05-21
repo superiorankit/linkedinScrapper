@@ -5,15 +5,17 @@ try {
   //Configuring path of env file
   dotenv.config({ path: './config.env' });
 
+  console.log(this)
+
   //Method to start Scrapping
   const start = async () => {
     console.log("Started...........")
     // Launching browser
     const browser = await puppeteer.launch({
       headless: false,
-      slowMo: 40
+      slowMo: 60
     });
-    // const browser = await puppeteer.launch();
+    // const browser = await puppeteer.launch(); 
 
     //Opening a new page
     const page = await browser.newPage();
@@ -21,37 +23,41 @@ try {
       //Linkedin username or email
       let user = process.env.USER;
 
+
       //Linked passowrd
       let password = process.env.PASSWORD;
 
-      let searchInput = 'education';
+      let searchInput = 'technology';
       let category = 'Companies';
-      let country = "indonesia";
-      let industry = "education";
-      let companySize = "#companySize-C";
+      let country = "riyadh";
+      let industry = "logistic";
+      let companySize = ["#companySize-C","#companySize-D","#companySize-E"];
 
-      let dataRequired = 5;
+      let dataRequired = 50;
+      let pageNumber = 0;
+
+      await page.setDefaultNavigationTimeout(60000);
 
       //Visiting to the link
       await page.goto('https://www.linkedin.com/home', { waitUntil: 'networkidle0' });
 
       //Setting viewport of window
-      await page.setViewport({ width: 1280, height: 1024 });
+      await page.setViewport({ width: 1280, height: 1500 });
 
       //type username
-      await page.type('#session_key', user);
+      await page.type('#session_key', user, { delay: 100 });
       //type password
-      await page.type('#session_password', password)
+      await page.type('#session_password', password, { delay: 100 });
 
       //click submit button
-      await page.click('button[type=submit]')
+      await page.click('button[type=submit]');
 
       //waits for complete page load
       await page.waitForNavigation();
 
       //Selector for search field
       await page.waitForSelector('.search-global-typeahead__input')
-      await page.type('.search-global-typeahead__input', searchInput)
+      await page.type('.search-global-typeahead__input', searchInput, { delay: 100 })
       await page.keyboard.press('Enter')
 
       await page.waitForNavigation();
@@ -73,7 +79,7 @@ try {
         //Selector for filter button
         await page.waitForSelector(option)
         const filterButton = await page.$(option)
-        filterButton.click();
+        await filterButton.click();
 
         //Selector for filter search input
         await page.waitForSelector(`input[placeholder='${placeholder}']`)
@@ -94,6 +100,10 @@ try {
         return await suggestionDiv.$$('span span');
       }
 
+
+
+
+      await page.waitForSelector('#searchFilter_companyHqGeo')
       //Country Choice filter
       let li = await filter('#searchFilter_companyHqGeo', 'Add a location', country);
       //clicking top suggestion
@@ -104,13 +114,35 @@ try {
       button[1].click();
       await page.waitForNavigation();
 
+      //Company Size Choice filter
+      await page.waitForSelector('#searchFilter_companySize')
+      const size = await page.$('#searchFilter_companySize')
+      await size.click();
+
+      //Clicking on provided size
+      companySize.forEach(async (el)=>{
+        const sizeLi = await page.$(el);
+        await sizeLi.click();
+      })
+
+
+
+      await page.waitForSelector('.reusable-search-filters-buttons .artdeco-button')
+
+      //Accessing apply button
+      button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
+      button[5].click();
+
+      await page.waitForNavigation();
+
       //Industry Choice filter
+      await page.waitForSelector('#searchFilter_industryCompanyVertical')
       li = await filter('#searchFilter_industryCompanyVertical', 'Add an industry', industry);
 
       //Iterating each suggestion and matching with provided input
       li.forEach(async (el) => {
         let text = await page.evaluate((e) => e.innerText, el)
-        if (text.toLowerCase() === industry.toLowerCase()) {
+        if (text.toLowerCase().includes(industry.toLowerCase())) {
           el.click();
           return;
         }
@@ -118,21 +150,22 @@ try {
 
       //Accessing apply button
       button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
-      button[3].click();
-      await page.waitForNavigation();
-
-      //Company Size Choice filter
-      await page.waitForSelector('#searchFilter_companySize')
-      const size = await page.$('#searchFilter_companySize')
-      size.click();
-
-      //Clicking on provided size
-      const sizeLi = await page.$(companySize);
-      await sizeLi.click();
-
-      //Accessing apply button
-      button = await page.$$('.reusable-search-filters-buttons .artdeco-button')
       button[5].click();
+      await page.waitForNavigation();
+      await page.waitForSelector("[aria-label~='Page']");
+      const pageButt = await page.$$("[aria-label~='Page']")
+      console.log(pageButt.length)
+
+      if(pageButt.length<pageNumber){
+        pageNumber = pageButt.length;
+      }
+
+      let pageUrl = await page.url();
+
+      
+      pageUrl = `${pageUrl.substring(0,pageUrl.lastIndexOf('&'))}&page=${pageNumber}${pageUrl.substring(pageUrl.lastIndexOf('&'))}`
+      await page.goto(pageUrl);
+
 
       //This keep count of company data extracted
       let companyCount = 0;
@@ -142,10 +175,9 @@ try {
 
       //Method for start searching each company link on a page
       const search = async () => {
-
         //Selector for getting list of companies
-        await page.waitForSelector(".entity-result__title-text .app-aware-link")
-        const list = await page.$$(".entity-result__title-text .app-aware-link")
+        await page.waitForSelector(".reusable-search__entity-result-list .scale-down")
+        const list = await page.$$(".reusable-search__entity-result-list .scale-down")
         const length = list.length;
 
         //Iterating each company
@@ -180,12 +212,17 @@ try {
 
               //Extracting each head of about page(For giving key name in object)
               let key = await Aboutpage.evaluate((val) => val.innerText, keyList[i]);
-
+              key = key.toLowerCase();
+              if(key === "website" || key === "company size" || key === "industry" || key === "email" || key === "headquarters")
+                {
               //Extracting the value of head(As value of key)
               let val = await Aboutpage.evaluate((val) => val.nextElementSibling.innerText, keyList[i]);
 
               //Creating a key-value pair in object
               singleData[key] = val;
+                }
+
+
             }
 
             //Adding new extracted data as object in main Array
@@ -212,7 +249,7 @@ try {
       //Loop untill all data extracted of each page or till number of data required
       while (true) {
         try {
-          await page.waitForNavigation();
+
           //Invoking method for extracted each data on current page
           await search();
 
@@ -226,6 +263,7 @@ try {
           //(if true then break loop)
           if (companyCount === dataRequired || disabled) break;
           await next.click();
+          await page.waitForNavigation();
 
         }
         catch (err) {
