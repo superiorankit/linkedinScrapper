@@ -34,7 +34,7 @@ try {
       let companySize = ["#companySize-C","#companySize-D","#companySize-E"];
 
       let dataRequired = 50;
-      let pageNumber = 0;
+      let pageNumber = 1;
 
       await page.setDefaultNavigationTimeout(60000);
 
